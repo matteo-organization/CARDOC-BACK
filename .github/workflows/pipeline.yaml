@@ -1,0 +1,27 @@
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+      - uses: aws-actions/setup-sam@v2
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::842913194435:role/github-actions-user-s3
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: 'eu-west-1'
+      - run: sam build --build-in-source
+      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --parameter-overrides "LogGroupRetentionInDays=7" "Env=dev"

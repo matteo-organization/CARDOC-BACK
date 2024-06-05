@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: |
   cardoc-service
@@ -48,7 +48,7 @@ Resources:
       Handler: vehicles.handler
       Policies:
         - VPCAccessPolicy: {}
-        - Version: '2012-10-17'
+        - Version: "2012-10-17"
           Statement:
             - Effect: Allow
               Action:
@@ -107,7 +107,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: es2020
+        Target: "es2020"
         Sourcemap: true
         EntryPoints:
           - vehicles.ts

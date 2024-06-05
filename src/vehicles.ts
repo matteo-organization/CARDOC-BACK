@@ -11,6 +11,19 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': '*',
 };
 
+interface VehicleUpdateRequest {
+  vehicleName: string;
+  type?: string;
+  brand?: string;
+  model?: string;
+  mileage?: number;
+  color?: string;
+  energy?: string;
+  date_of_first_registration?: string;
+  date_of_purchase?: string;
+  number_of_owner?: number;
+}
+
 export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   switch (event.httpMethod) {
     case 'POST':
@@ -37,19 +50,22 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
 const postVehicles = async (event: any) => {
   try {
     const requestBody = JSON.parse(event.body || '{}');
-    const { vehicleName, description, createdAt, createdBy, dev, prod } = requestBody;
+    const { vehicleName, type, brand, model, mileage, color, energy, dateOfFirstRegistration, dateOfPurchase, numberOfOwner} = requestBody;
 
     const response = await docClient.send(
       new PutCommand({
         TableName: 'Vehicles',
         Item: {
           vehicleName: vehicleName,
-          // description: description,
-          // lastUsage: new Date('1970-01-01T00:00:00.000Z').getTime(),
-          // createdAt: createdAt,
-          // createdBy: createdBy,
-          // dev: dev,
-          // prod: prod,
+          type: type,
+          brand: brand,
+          model: model,
+          mileage: mileage,
+          color: color,
+          energy: energy,
+          date_of_first_registration: new Date(dateOfFirstRegistration),
+          date_of_purchase: new Date(dateOfPurchase),
+          number_of_owner: numberOfOwner || null,
         },
       }),
     );
@@ -92,13 +108,38 @@ const getVehicles = async () => {
   }
 };
 
-const putVehicles = async (event: any) => {
+const putVehicles = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
-    const requestBody = JSON.parse(event.body || '{}');
-    const { vehicleName, description, createdAt, createdBy, dev, prod } = requestBody;
+    const requestBody: VehicleUpdateRequest = JSON.parse(event.body || '{}');
+    const { vehicleName, ...updateFields } = requestBody;
 
-    const updateExpression =
-      'SET description = :description, createdAt = :createdAt, createdBy = :createdBy, dev = :dev, prod = :prod';
+    if (!vehicleName) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Le champ vehicleName est requis.' }),
+        headers: corsHeaders,
+      };
+    }
+
+    const updateExpressionArray = [];
+    const expressionAttributeValues: any = {};
+
+    for (const [key, value] of Object.entries(updateFields)) {
+      if (value !== undefined) {
+        updateExpressionArray.push(`${key} = :${key}`);
+        expressionAttributeValues[`:${key}`] = value;
+      }
+    }
+
+    if (updateExpressionArray.length === 0) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: 'Aucun champ à mettre à jour.' }),
+        headers: corsHeaders,
+      };
+    }
+
+    const updateExpression = 'SET ' + updateExpressionArray.join(', ');
 
     const response = await docClient.send(
       new UpdateCommand({
@@ -107,16 +148,11 @@ const putVehicles = async (event: any) => {
           vehicleName: vehicleName,
         },
         UpdateExpression: updateExpression,
-        ExpressionAttributeValues: {
-          ':description': description,
-          ':createdAt': createdAt,
-          ':createdBy': createdBy,
-          ':dev': dev,
-          ':prod': prod,
-        },
+        ExpressionAttributeValues: expressionAttributeValues,
         ReturnValues: 'ALL_NEW',
       }),
     );
+
     return {
       statusCode: 200,
       body: JSON.stringify({ message: 'Données mises à jour avec succès.', response }),

@@ -1,8 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
+Description: |
   cardoc-service
-
   Sample SAM Template for cardoc-service
 
 Globals:
@@ -27,6 +26,12 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
+
+  VehiclesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: Vehicles
+      AccessControl: Private
 
   VehiclesApi:
     Type: AWS::Serverless::Api
@@ -53,6 +58,12 @@ Resources:
                 - dynamodb:DeleteItem
                 - dynamodb:Scan
               Resource: !GetAtt VehiclesTable.Arn
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+                - s3:GetObject
+                - s3:DeleteObject
+              Resource: !Sub arn:aws:s3:::Vehicles/*
       Events:
         GetVehicles:
           Type: Api
@@ -78,22 +89,39 @@ Resources:
             RestApiId: !Ref VehiclesApi
             Path: /vehicles
             Method: delete
+        VehiclesBucket:
+          Type: S3
+          Properties:
+            Bucket: !Ref VehiclesBucket
+            Events:
+              - s3:ObjectCreated:*
+              - s3:ObjectRemoved:*
+        VehiclesTable:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt VehiclesTable.StreamArn
+            StartingPosition: TRIM_HORIZON
+            BatchSize: 1
+
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: 'es2020'
+        Target: es2020
         Sourcemap: true
         EntryPoints:
           - vehicles.ts
 
 Outputs:
   VehiclesApi:
-    Description: 'API Gateway endpoint URL for Prod stage for VehiclesApi function'
-    Value: !Sub 'https://${VehiclesApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/'
+    Description: API Gateway endpoint URL for Prod stage for VehiclesApi function
+    Value: !Sub https://${VehiclesApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
   VehiclesFunction:
-    Description: 'VehiclesFunction Lambda Function ARN'
+    Description: VehiclesFunction Lambda Function ARN
     Value: !GetAtt VehiclesFunction.Arn
   VehiclesFunctionIamRole:
-    Description: 'IAM Role created for VehiclesFunction function'
+    Description: IAM Role created for VehiclesFunction function
     Value: !GetAtt VehiclesFunction.Arn
+  VehiclesBucket:
+    Description: S3 Bucket for storing vehicle images and documents
+    Value: !Ref VehiclesBucket

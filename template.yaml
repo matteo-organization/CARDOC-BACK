@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: "2010-09-09"
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   cardoc-service
@@ -17,7 +17,7 @@ Resources:
   VehiclesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: Vehicles
+      TableName: vehicles-table
       AttributeDefinitions:
         - AttributeName: vehicleName
           AttributeType: S
@@ -27,12 +27,6 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
-
-  VehiclesBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: vehicles-bucket
-      AccessControl: Private
 
   VehiclesApi:
     Type: AWS::Serverless::Api
@@ -49,7 +43,7 @@ Resources:
       Handler: vehicles.handler
       Policies:
         - VPCAccessPolicy: {}
-        - Version: "2012-10-17"
+        - Version: '2012-10-17'
           Statement:
             - Effect: Allow
               Action:
@@ -59,12 +53,6 @@ Resources:
                 - dynamodb:DeleteItem
                 - dynamodb:Scan
               Resource: !GetAtt VehiclesTable.Arn
-            - Effect: Allow
-              Action:
-                - s3:PutObject
-                - s3:GetObject
-                - s3:DeleteObject
-              Resource: !Sub arn:aws:s3:::vehicles-bucket/*
       Events:
         GetVehicles:
           Type: Api
@@ -94,11 +82,10 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: "es2020"
+        Target: 'es2020'
         Sourcemap: true
         EntryPoints:
           - vehicles.ts
-    DependsOn: VehiclesBucket
 
 Outputs:
   VehiclesApi:
@@ -110,6 +97,3 @@ Outputs:
   VehiclesFunctionIamRole:
     Description: IAM Role created for VehiclesFunction function
     Value: !GetAtt VehiclesFunction.Arn
-  VehiclesBucket:
-    Description: S3 Bucket for storing vehicle images and documents
-    Value: !Ref VehiclesBucket

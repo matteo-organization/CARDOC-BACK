@@ -63,7 +63,11 @@ Resources:
                 - s3:PutObject
                 - s3:GetObject
                 - s3:DeleteObject
+<<<<<<< HEAD
               Resource: !Sub arn:aws:s3:::Vehicles/*
+=======
+              Resource: !Sub "arn:aws:s3:::vehicles/*"
+>>>>>>> 44aab2f (:sparkles: Add Vehicle bucket)
       Events:
         GetVehicles:
           Type: Api
@@ -107,13 +111,18 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
+<<<<<<< HEAD
         Target: es2020
+=======
+        Target: "es2020"
+>>>>>>> 44aab2f (:sparkles: Add Vehicle bucket)
         Sourcemap: true
         EntryPoints:
           - vehicles.ts
 
 Outputs:
   VehiclesApi:
+<<<<<<< HEAD
     Description: API Gateway endpoint URL for Prod stage for VehiclesApi function
     Value: !Sub https://${VehiclesApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
   VehiclesFunction:
@@ -125,3 +134,16 @@ Outputs:
   VehiclesBucket:
     Description: S3 Bucket for storing vehicle images and documents
     Value: !Ref VehiclesBucket
+=======
+    Description: "API Gateway endpoint URL for Prod stage for VehiclesApi function"
+    Value: !Sub "https://${VehiclesApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  VehiclesFunction:
+    Description: "VehiclesFunction Lambda Function ARN"
+    Value: !GetAtt VehiclesFunction.Arn
+  VehiclesFunctionIamRole:
+    Description: "IAM Role created for VehiclesFunction function"
+    Value: !GetAtt VehiclesFunction.Arn
+  Vehicles:
+    Description: "S3 Bucket for storing vehicle images and documents"
+    Value: !Ref Vehicles
+>>>>>>> 44aab2f (:sparkles: Add Vehicle bucket)

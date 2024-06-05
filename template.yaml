@@ -27,10 +27,10 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
 
-  Vehicles:
+  VehiclesBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: vehicles
+      BucketName: Vehicles
       AccessControl: Private
 
   VehiclesApi:
@@ -63,7 +63,7 @@ Resources:
                 - s3:PutObject
                 - s3:GetObject
                 - s3:DeleteObject
-              Resource: !Sub "arn:aws:s3:::vehicles/*"
+              Resource: !Sub arn:aws:s3:::Vehicles/*
       Events:
         GetVehicles:
           Type: Api
@@ -107,21 +107,21 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: "es2020"
+        Target: es2020
         Sourcemap: true
         EntryPoints:
           - vehicles.ts
 
 Outputs:
   VehiclesApi:
-    Description: "API Gateway endpoint URL for Prod stage for VehiclesApi function"
-    Value: !Sub "https://${VehiclesApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+    Description: API Gateway endpoint URL for Prod stage for VehiclesApi function
+    Value: !Sub https://${VehiclesApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
   VehiclesFunction:
-    Description: "VehiclesFunction Lambda Function ARN"
+    Description: VehiclesFunction Lambda Function ARN
     Value: !GetAtt VehiclesFunction.Arn
   VehiclesFunctionIamRole:
-    Description: "IAM Role created for VehiclesFunction function"
+    Description: IAM Role created for VehiclesFunction function
     Value: !GetAtt VehiclesFunction.Arn
-  Vehicles:
-    Description: "S3 Bucket for storing vehicle images and documents"
-    Value: !Ref Vehicles
+  VehiclesBucket:
+    Description: S3 Bucket for storing vehicle images and documents
+    Value: !Ref VehiclesBucket

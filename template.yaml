@@ -1,7 +1,8 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: |
+Description: >
   cardoc-service
+
   Sample SAM Template for cardoc-service
 
 Globals:
@@ -30,7 +31,7 @@ Resources:
   VehiclesBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: Vehicles
+      BucketName: vehicles-bucket
       AccessControl: Private
 
   VehiclesApi:
@@ -63,7 +64,7 @@ Resources:
                 - s3:PutObject
                 - s3:GetObject
                 - s3:DeleteObject
-              Resource: !Sub arn:aws:s3:::Vehicles/*
+              Resource: !Sub arn:aws:s3:::vehicles-bucket/*
       Events:
         GetVehicles:
           Type: Api
@@ -89,20 +90,6 @@ Resources:
             RestApiId: !Ref VehiclesApi
             Path: /vehicles
             Method: delete
-        VehiclesBucket:
-          Type: S3
-          Properties:
-            Bucket: !Ref VehiclesBucket
-            Events:
-              - s3:ObjectCreated:*
-              - s3:ObjectRemoved:*
-        VehiclesTable:
-          Type: DynamoDB
-          Properties:
-            Stream: !GetAtt VehiclesTable.StreamArn
-            StartingPosition: TRIM_HORIZON
-            BatchSize: 1
-
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -111,6 +98,7 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - vehicles.ts
+    DependsOn: VehiclesBucket
 
 Outputs:
   VehiclesApi:

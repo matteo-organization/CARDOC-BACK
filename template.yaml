@@ -19,10 +19,10 @@ Resources:
     Properties:
       TableName: vehicles-table
       AttributeDefinitions:
-        - AttributeName: vehicleName
+        - AttributeName: vehicle_id
           AttributeType: S
       KeySchema:
-        - AttributeName: vehicleName
+        - AttributeName: vehicle_id
           KeyType: HASH
       ProvisionedThroughput:
         ReadCapacityUnits: 5

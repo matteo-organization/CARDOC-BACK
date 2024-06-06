@@ -7,6 +7,7 @@ import {
   UpdateCommand,
 } from '@aws-sdk/lib-dynamodb';
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { randomUUID } from 'crypto';
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -18,7 +19,8 @@ const corsHeaders = {
 };
 
 interface VehicleUpdateRequest {
-  vehicleName: string;
+  vehicle_id: string;
+  vehicle_name?: string;
   type?: string;
   brand?: string;
   model?: string;
@@ -59,7 +61,7 @@ const postVehicles = async (event: any) => {
   try {
     const requestBody = JSON.parse(event.body || '{}');
     const {
-      vehicleName,
+      vehicle_name,
       type,
       brand,
       model,
@@ -75,7 +77,8 @@ const postVehicles = async (event: any) => {
       new PutCommand({
         TableName: 'vehicles-table',
         Item: {
-          vehicleName: vehicleName,
+          vehicle_id: randomUUID(),
+          vehicle_name: vehicle_name,
           type: type,
           brand: brand,
           model: model,
@@ -141,9 +144,9 @@ const putVehicles = async (
 ): Promise<APIGatewayProxyResult> => {
   try {
     const requestBody: VehicleUpdateRequest = JSON.parse(event.body || '{}');
-    const { vehicleName, ...updateFields } = requestBody;
+    const { vehicle_id, ...updateFields } = requestBody;
 
-    if (!vehicleName) {
+    if (!vehicle_id) {
       return {
         statusCode: 400,
         body: JSON.stringify({ message: 'Le champ vehicleName est requis.' }),
@@ -175,7 +178,7 @@ const putVehicles = async (
       new UpdateCommand({
         TableName: 'vehicles-table',
         Key: {
-          vehicleName: vehicleName,
+          vehicle_id: vehicle_id,
         },
         UpdateExpression: updateExpression,
         ExpressionAttributeValues: expressionAttributeValues,
@@ -207,13 +210,13 @@ const putVehicles = async (
 const deleteVehicles = async (event: any) => {
   try {
     const requestBody = JSON.parse(event.body || '{}');
-    const { vehicleName } = requestBody;
+    const { vehicle_id } = requestBody;
 
     const response = await docClient.send(
       new DeleteCommand({
         TableName: 'vehicles-table',
         Key: {
-          vehicleName: vehicleName,
+          vehicle_id: vehicle_id,
         },
       })
     );

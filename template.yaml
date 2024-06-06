@@ -37,22 +37,35 @@ Resources:
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
 
+  VehiclesFunctionRole:
+    Type: AWS::IAM::Role
+    Properties: 
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - Effect: "Allow"
+            Principal: 
+              Service: "lambda.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Policies:
+        - PolicyName: "VehiclesFunctionPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:GetItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:Scan
+                Resource: !GetAtt VehiclesTable.Arn
+
   VehiclesFunction:
     Type: AWS::Serverless::Function
     Properties:
       Handler: vehicles.handler
-      Policies:
-        - VPCAccessPolicy: {}
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - dynamodb:PutItem
-                - dynamodb:GetItem
-                - dynamodb:UpdateItem
-                - dynamodb:DeleteItem
-                - dynamodb:Scan
-              Resource: !GetAtt VehiclesTable.Arn
+      Role: !GetAtt VehiclesFunctionRole.Arn
       Events:
         GetVehicles:
           Type: Api
@@ -96,4 +109,4 @@ Outputs:
     Value: !GetAtt VehiclesFunction.Arn
   VehiclesFunctionIamRole:
     Description: IAM Role created for VehiclesFunction function
-    Value: !GetAtt VehiclesFunction.Arn
+    Value: !GetAtt VehiclesFunctionRole.Arn

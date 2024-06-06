@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   cardoc-service
@@ -39,12 +39,12 @@ Resources:
 
   VehiclesFunctionRole:
     Type: AWS::IAM::Role
-    Properties: 
-      AssumeRolePolicyDocument: 
+    Properties:
+      AssumeRolePolicyDocument:
         Version: "2012-10-17"
-        Statement: 
+        Statement:
           - Effect: "Allow"
-            Principal: 
+            Principal:
               Service: "lambda.amazonaws.com"
             Action: "sts:AssumeRole"
       Policies:
@@ -60,6 +60,18 @@ Resources:
                   - dynamodb:DeleteItem
                   - dynamodb:Scan
                 Resource: !GetAtt VehiclesTable.Arn
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:DeleteObject
+                Resource: !Sub "arn:aws:s3:::vehicles-bucket-unique-identifier/*"
+
+  VehiclesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: vehicles-bucket-unique-identifier
+      AccessControl: Private
 
   VehiclesFunction:
     Type: AWS::Serverless::Function
@@ -95,7 +107,7 @@ Resources:
       BuildMethod: esbuild
       BuildProperties:
         Minify: true
-        Target: 'es2020'
+        Target: "es2020"
         Sourcemap: true
         EntryPoints:
           - vehicles.ts
@@ -110,3 +122,6 @@ Outputs:
   VehiclesFunctionIamRole:
     Description: IAM Role created for VehiclesFunction function
     Value: !GetAtt VehiclesFunctionRole.Arn
+  VehiclesBucketName:
+    Description: S3 bucket for storing vehicle images and documents
+    Value: !Ref VehiclesBucket
